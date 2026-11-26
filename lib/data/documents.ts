@@ -132,6 +132,8 @@ export async function getDocument(userId: string, documentId: string) {
       model: true,
       analysedAt: true,
       createdAt: true,
+      coverStartDate: true,
+      priorCoverMonths: true,
       findings: true,
       questions: { orderBy: { createdAt: "desc" }, take: 20 },
     },
@@ -235,4 +237,21 @@ export async function listReadyDocuments(userId: string) {
 /** Delete the account and, by cascade, every policy, page, finding, question and sign-in record. */
 export async function deleteAccount(userId: string) {
   await prisma.user.delete({ where: { id: userId } });
+}
+
+/** Save when the user's cover started (and months carried over by porting), for the waiting-period timeline. */
+export async function setCoverDates(userId: string, documentId: string, start: string, priorMonths: number) {
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(start) ? new Date(`${start}T00:00:00Z`) : null;
+  const max = new Date(Date.now() + 366 * 86_400_000);
+  if (!date || Number.isNaN(date.getTime()) || date < new Date("1980-01-01T00:00:00Z") || date > max) {
+    throw new PolicyRuleError("Enter the date your cover started.");
+  }
+  if (!Number.isInteger(priorMonths) || priorMonths < 0 || priorMonths > 600) {
+    throw new PolicyRuleError("Earlier cover should be a number of months, 0 if none.");
+  }
+  const { count } = await prisma.document.updateMany({
+    where: { id: documentId, userId },
+    data: { coverStartDate: date, priorCoverMonths: priorMonths },
+  });
+  if (count === 0) throw new NotFoundError();
 }

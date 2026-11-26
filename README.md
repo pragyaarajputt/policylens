@@ -2,7 +2,13 @@
 
 Know what your health insurance really covers, before the claim. Upload an Indian health-insurance policy PDF and get 20 plain-English answers (room-rent cap, co-pay, waiting periods, sub-limits, consumables and more), **each quoting the exact clause and page, checked against the PDF itself.**
 
-**Features:** upload a policy PDF, 20 cited answers with a verified badge, claim-risk warnings for your sum insured, a clause view that highlights the quoted words on the page, questions answered only from the policy, and side-by-side comparison of 2–3 policies.
+**What a chatbot can't do for you:**
+
+- **Claim calculator.** Enter a hospital bill and see what the policy pays, to the rupee. It applies the room-rent limit, proportionate deduction, ICU cap, consumables, cataract sub-limit, deductible and co-pay, with each cut linked to its clause. It's fixed rules in code (`lib/claim-calc.ts`), not AI, so the same bill always gives the same answer. A rule whose clause isn't verified is skipped and flagged, never guessed. It also suggests the room that avoids the cuts ("choose up to ₹5,000/day and pay ₹12,500 instead of ₹49,438").
+- **"Am I covered yet?"** Enter your cover start date and any porting credit. You get the exact date each waiting period ends, one row per condition list, plus a search box ("knee replacement → covered from 15 Apr 2028") and a calendar (.ics) download.
+- **Every quote checked against the PDF**, with a clause view that highlights it on the page.
+- **Printable one-page policy card** for the family or the hospital desk, built only from verified clauses, with page numbers.
+- **Side-by-side comparison** of 2–3 policies, and questions answered only from your policy.
 
 ## How it works
 
@@ -24,7 +30,9 @@ Know what your health insurance really covers, before the claim. Upload an India
 | Check (`npm run eval`, live Gemini, free tier) | Facts right | Quotes verified | Questions right |
 |---|---|---|---|
 | Fictional 7-page sample policy | 13/13 | 20/20 | – |
-| Real policy: Go Digit Arogya Sanjeevani, 25 pages (2 runs) | 13/13, 13/13 | 16/17, 18/18 | 3/3, 3/3 (incl. "the policy doesn't say" for premium) |
+| Real policy: Go Digit Arogya Sanjeevani, 25 pages (3 runs) | 13/13, 13/13, 19/19 incl. 6 calculator/timeline facts | 16/17, 18/18, 16/17 | 3/3, 3/3, 3/3 (incl. "the policy doesn't say" for premium) |
+
+On the example bill, the calculator gives the same payout (₹1,08,062) from the AI's facts as from the hand labels.
 
 That's 1 real policy so far, not 20: a small check, not a benchmark. Hand labels and their page references are in `tests/evals/real-policy-labels.ts`; the insurers' PDFs aren't in the repo, so put them in `eval-policies/` (the source URL is in the labels). Adding a policy is one entry there.
 

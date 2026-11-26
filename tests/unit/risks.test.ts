@@ -21,6 +21,11 @@ const base: PolicyFacts = {
   consumablesCovered: true,
   restoration: true,
   noClaimBonusPercentPerYear: 50,
+  icuCap: null,
+  copayRules: [],
+  cataractLimit: null,
+  maternityWaitingMonths: 24,
+  waitingConditions: [],
 };
 const all = (field: string) => field.length >= 0;
 const codes = (f: Partial<PolicyFacts>, si: number | null = 500000, trusted = all) => risks({ ...base, ...f }, si, trusted).map((r) => r.code);
@@ -72,5 +77,29 @@ describe("extraction schema", () => {
   });
   it("has 20 unique fields", () => {
     expect(new Set(FIELDS.map((f) => f.key)).size).toBe(20);
+  });
+});
+
+describe("tidyToolFacts", () => {
+  it("clamps and trims what the AI returns for the calculator and timeline", async () => {
+    const { tidyToolFacts } = await import("@/lib/policy-schema");
+    const t = tidyToolFacts({
+      ...base,
+      icuCap: { percentOfSumInsured: 500, rupeesPerDay: -1 },
+      copayRules: [
+        { percent: 0, when: "ALL_CLAIMS", fromAge: null, note: "none" },
+        { percent: 20, when: "AGE", fromAge: 60.6, note: "x".repeat(300) },
+      ],
+      cataractLimit: null,
+      maternityWaitingMonths: -5,
+      waitingConditions: [
+        { condition: "  Hernia  ", months: 24.2 },
+        { condition: " ", months: 24 },
+      ],
+    });
+    expect(t.icuCap).toEqual({ percentOfSumInsured: 100, rupeesPerDay: null });
+    expect(t.copayRules).toEqual([{ percent: 20, when: "AGE", fromAge: 61, note: "x".repeat(140) }]);
+    expect(t.maternityWaitingMonths).toBeNull();
+    expect(t.waitingConditions).toEqual([{ condition: "Hernia", months: 24 }]);
   });
 });

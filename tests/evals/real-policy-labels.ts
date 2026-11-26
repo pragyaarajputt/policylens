@@ -8,6 +8,8 @@ export interface PolicyLabel {
   source: string;
   facts: Partial<Record<FactKey, readonly unknown[]>>;
   questions: { ask: string; answerable: boolean; mustMention?: string[] }[];
+  /** Values the claim calculator and timeline depend on, at a ₹5L sum insured. */
+  tools?: { icuCapAt5L: number; cataractPerEyeAt5L: number; copayAllClaims: number; conditionMonths: Record<string, number> };
 }
 
 export type FactKey =
@@ -44,6 +46,12 @@ export const LABELS: PolicyLabel[] = [
       postHospitalisationDays: [60],
       restoration: [false, null], // no restoration benefit in the standard product
       noClaimBonusPercentPerYear: [5], // cumulative bonus 5% a claim-free year (p.7)
+    },
+    tools: {
+      icuCapAt5L: 10000, // 5% of SI, max Rs 10,000/day (p.6)
+      cataractPerEyeAt5L: 40000, // 25% of SI or Rs 40,000 per eye, whichever is lower (p.6)
+      copayAllClaims: 5, // p.18
+      conditionMonths: { hernia: 24, cataract: 24, "knee replacement": 36 }, // 24- and 36-month lists (p.8-9)
     },
     questions: [
       { ask: "Is cataract surgery covered, and up to how much?", answerable: true, mustMention: ["40,000|40000", "25%"] },

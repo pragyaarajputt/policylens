@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { signOut } from "@/lib/auth";
 import { AiError } from "@/lib/ai/gemini";
-import { analyseDocument, askQuestion, deleteAccount, deleteDocument, NotFoundError, PolicyRuleError, uploadDocument } from "@/lib/data/documents";
+import { analyseDocument, askQuestion, deleteAccount, deleteDocument, setCoverDates, NotFoundError, PolicyRuleError, uploadDocument } from "@/lib/data/documents";
 import { PdfError } from "@/lib/pdf";
 import { requireUserId } from "@/lib/session";
 
@@ -52,6 +52,17 @@ export async function askAction(_prev: ActionState, form: FormData): Promise<Act
   const question = String(form.get("question") ?? "");
   try {
     await askQuestion(userId, documentId, question);
+  } catch (error) {
+    return friendly(error);
+  }
+  refresh();
+  return { ok: true };
+}
+
+export async function coverDatesAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const userId = await requireUserId();
+  try {
+    await setCoverDates(userId, String(form.get("documentId") ?? ""), String(form.get("start") ?? ""), Number(form.get("prior") || 0));
   } catch (error) {
     return friendly(error);
   }

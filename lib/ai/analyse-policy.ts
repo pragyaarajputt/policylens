@@ -6,6 +6,7 @@ import { withPageMarkers } from "@/lib/pdf";
 import {
   policyExtractionSchema,
   policyJsonSchema,
+  tidyToolFacts,
   type PolicyFacts,
 } from "@/lib/policy-schema";
 
@@ -22,7 +23,10 @@ Rules:
   Do not copy the clause into the summary: the quote field carries the exact words. Good: "Room rent is capped at 1% of the sum insured per day." Bad: "Room, boarding and nursing expenses are payable up to 1% of the Sum Insured per day for a normal room."
 - Amounts: "Rs. 5,000" = 5000; "1% of Sum Insured" is PERCENT_OF_SI with 1; "single private AC room" is ROOM_CATEGORY.
 - Waiting periods in years become months (2 years = 24).
-- facts.copayPercent is the largest co-payment that can apply; copayAlways is true only if it applies to every claim.`;
+- facts.copayPercent is the largest co-payment that can apply; copayAlways is true only if it applies to every claim.
+- facts.copayRules lists every co-payment separately (e.g. 20% from age 61 is AGE with fromAge 61; 10% for treatment in a higher zone city is ZONE; one for non-network hospitals is NON_NETWORK).
+- facts.waitingConditions copies each condition or procedure named in the specific waiting period list(s), with that list's months. If the policy has 24- and 36-month lists, give each condition its own list's months.
+- facts.icuCap and facts.cataractLimit: fill both the percent and the rupee amount when the clause says "whichever is lower" or "subject to a maximum of".`;
 
 export interface AnalysedFinding {
   field: string;
@@ -98,5 +102,5 @@ export async function analysePolicy(pages: string[]): Promise<PolicyAnalysis> {
     };
   });
 
-  return { facts: parsed.data.facts, findings, model, attempts };
+  return { facts: tidyToolFacts(parsed.data.facts), findings, model, attempts };
 }

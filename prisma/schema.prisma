@@ -91,6 +91,9 @@ model Document {
   facts        Json? // typed values used by risk rules and comparison
   model        String?
   analysedAt   DateTime?
+  // The user's own dates, for the waiting-period timeline.
+  coverStartDate   DateTime? @db.Date // first day of continuous cover with this insurer
+  priorCoverMonths Int? // continuous earlier cover carried over by porting
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 

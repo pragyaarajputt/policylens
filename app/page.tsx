@@ -12,7 +12,26 @@ const steps = [
   { title: "Upload your policy wording", body: "The PDF from your insurer's website or welcome email. We read all of it, page by page." },
   { title: "Get 20 straight answers", body: "Room rent, co-pay, waiting periods, sub-limits, consumables and more, in plain English." },
   { title: "Check the clause yourself", body: "Every answer quotes the policy with its page number, highlighted on the page. If we can't find the quote in the PDF, we don't show it as fact." },
-  { title: "Ask, and compare", body: "Ask your own questions, answered only from your policy. Put two or three policies side by side to see where they really differ." },
+  { title: "Plan for the claim", body: "See what a hospital bill would really cost you, when each waiting period ends for you, and ask your own questions, answered only from your policy." },
+];
+
+const versusChat = [
+  {
+    title: "Every quote is checked against the PDF",
+    body: "A chatbot can invent a clause that sounds right. PolicyLens matches every quote word for word against the page it came from, and crosses out what it can't find.",
+  },
+  {
+    title: "Your claim, worked out to the rupee",
+    body: "Enter a hospital bill and see what the policy pays: room-rent limit, proportionate deduction, co-pay and sub-limits, each cut linked to its clause. Fixed rules, not AI, so the same bill always gives the same answer.",
+  },
+  {
+    title: "Real dates, not \"36 months\"",
+    body: "Tell it when your cover started (and any porting credit) and see the exact day each waiting period ends. Search “knee replacement” and get a date. Add the dates to your calendar.",
+  },
+  {
+    title: "Kept, compared and printable",
+    body: "Your policies stay in one place. Compare two or three side by side, and print a one-page card for the family or the hospital desk.",
+  },
 ];
 
 export default function Home() {
@@ -68,6 +87,21 @@ export default function Home() {
               </li>
             ))}
           </ol>
+        </section>
+        <section aria-labelledby="chatbot-heading" className="mx-auto w-full max-w-5xl px-4 pb-10 sm:px-6">
+          <div className="grid gap-6 rounded-3xl border bg-background/80 p-6 sm:p-10">
+            <h2 id="chatbot-heading" className="display text-4xl">
+              Why not just ask a <em>chatbot</em>?
+            </h2>
+            <ul className="grid gap-6 md:grid-cols-2">
+              {versusChat.map((v) => (
+                <li key={v.title} className="grid content-start gap-1.5">
+                  <h3 className="font-medium">{v.title}</h3>
+                  <p className="leading-relaxed text-muted-foreground">{v.body}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       </main>
       <footer className="mx-auto w-full max-w-5xl px-4 pb-12 pt-4 text-sm leading-relaxed text-muted-foreground sm:px-6">

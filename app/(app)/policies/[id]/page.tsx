@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "../status-badge";
 import { AskForm } from "./ask-form";
 import { AnalyseButton, DeletePolicyButton } from "./policy-client";
+import { PolicyTabs } from "./policy-tabs";
 
 export const metadata: Metadata = { title: "Policy" };
 
@@ -84,6 +85,8 @@ async function Policy({
           <DeletePolicyButton documentId={doc.id} />
         </div>
       </header>
+
+      {doc.status === "READY" && <PolicyTabs id={doc.id} active="coverage" />}
 
       {(doc.status === "UPLOADED" || doc.status === "FAILED" || doc.status === "ANALYSING") && (
         <section className="grid gap-3 rounded-2xl border bg-background/80 p-6">

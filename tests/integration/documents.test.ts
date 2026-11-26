@@ -10,7 +10,7 @@ vi.mock("@/lib/ai/gemini", async (importOriginal) => ({
 }));
 
 const { prisma } = await import("@/lib/db");
-const { analyseDocument, askQuestion, deleteAccount, deleteDocument, getClausePage, getComparison, getDocument, getDocumentPdf, listDocuments, NotFoundError, PolicyRuleError, uploadDocument } =
+const { analyseDocument, askQuestion, deleteAccount, deleteDocument, setCoverDates, getClausePage, getComparison, getDocument, getDocumentPdf, listDocuments, NotFoundError, PolicyRuleError, uploadDocument } =
   await import("@/lib/data/documents");
 const { FIELDS } = await import("@/lib/fields");
 
@@ -56,6 +56,11 @@ function fakeExtraction(): PolicyExtraction {
       consumablesCovered: true,
       restoration: null,
       noClaimBonusPercentPerYear: null,
+      icuCap: null,
+      copayRules: [{ percent: 20, when: "ALL_CLAIMS", fromAge: null, note: "on every claim" }],
+      cataractLimit: null,
+      maternityWaitingMonths: null,
+      waitingConditions: [],
     },
     findings,
   };
@@ -224,6 +229,20 @@ describe("questions", () => {
     const me = (await prisma.user.findUniqueOrThrow({ where: { email: "me@example.com" } })).id;
     await expect(askQuestion(me, id, "hi")).rejects.toBeInstanceOf(PolicyRuleError);
     await expect(askQuestion(me, id, "x".repeat(301))).rejects.toBeInstanceOf(PolicyRuleError);
+  });
+});
+
+describe("cover dates", () => {
+  it("saves valid dates for the owner only", async () => {
+    const me = await user("me@example.com");
+    const other = await user("other@example.com");
+    const { id } = await uploadDocument(me, "wording.pdf", await makePdf(POLICY));
+    await setCoverDates(me, id, "2025-04-15", 12);
+    expect(await getDocument(me, id)).toMatchObject({ priorCoverMonths: 12, coverStartDate: new Date("2025-04-15T00:00:00Z") });
+    await expect(setCoverDates(me, id, "15/04/2025", 0)).rejects.toBeInstanceOf(PolicyRuleError);
+    await expect(setCoverDates(me, id, "2099-01-01", 0)).rejects.toBeInstanceOf(PolicyRuleError);
+    await expect(setCoverDates(me, id, "2025-04-15", -3)).rejects.toBeInstanceOf(PolicyRuleError);
+    await expect(setCoverDates(other, id, "2025-04-15", 0)).rejects.toBeInstanceOf(NotFoundError);
   });
 });
 
