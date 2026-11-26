@@ -2,6 +2,12 @@
 
 Know what your health insurance really covers, before the claim. Upload an Indian health-insurance policy PDF and get 20 plain-English answers (room-rent cap, co-pay, waiting periods, sub-limits, consumables and more), **each quoting the exact clause and page, checked against the PDF itself.**
 
+**Live:** https://policylens-mocha.vercel.app (sign in with Google)
+
+![PolicyLens demo: verified clauses, claim calculator, waiting-period dates, comparison and policy card](docs/demo.gif)
+
+▶ [Watch the demo as video (MP4)](docs/demo.mp4)
+
 **What a chatbot can't do for you:**
 
 - **Claim calculator.** Enter a hospital bill and see what the policy pays, to the rupee. It applies the room-rent limit, proportionate deduction, ICU cap, consumables, cataract sub-limit, deductible and co-pay, with each cut linked to its clause. It's fixed rules in code (`lib/claim-calc.ts`), not AI, so the same bill always gives the same answer. A rule whose clause isn't verified is skipped and flagged, never guessed. It also suggests the room that avoids the cuts ("choose up to ₹5,000/day and pay ₹12,500 instead of ₹49,438").
