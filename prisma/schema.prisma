@@ -1,0 +1,171 @@
+// PolicyLens data model.
+// A policy PDF is stored with its text per page, so every AI citation can be checked against the exact page.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../lib/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth.js ──────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  documents Document[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ─── Policies ─────────────────────────────────────────────────────────────────
+
+enum DocumentStatus {
+  UPLOADED // text extracted, not analysed yet
+  ANALYSING
+  READY
+  FAILED
+  SCANNED // image-only PDF: no text layer to analyse
+}
+
+model Document {
+  id           String         @id @default(cuid())
+  userId       String
+  filename     String
+  sizeBytes    Int
+  sha256       String
+  pageCount    Int
+  pdf          Bytes // kept so the viewer can show the exact page; deleted with the document
+  status       DocumentStatus @default(UPLOADED)
+  error        String?
+  // Filled by analysis.
+  insurer      String?
+  planName     String?
+  facts        Json? // typed values used by risk rules and comparison
+  model        String?
+  analysedAt   DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pages     DocumentPage[]
+  findings  Finding[]
+  questions Question[]
+
+  @@unique([userId, sha256])
+  @@index([userId, createdAt])
+}
+
+model DocumentPage {
+  documentId String
+  pageNumber Int // 1-based
+  text       String
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@id([documentId, pageNumber])
+}
+
+enum CoverageStatus {
+  COVERED
+  LIMITED
+  NOT_COVERED
+  NOT_MENTIONED
+}
+
+enum CitationCheck {
+  EXACT // quote found word-for-word on the cited page
+  FUZZY // quote found with minor differences (line breaks, punctuation)
+  MOVED // quote found, but on a different page than cited (page corrected)
+  NOT_FOUND // quote not in the document: never shown as fact
+  NONE // no quote given
+}
+
+model Finding {
+  id         String         @id @default(cuid())
+  documentId String
+  field      String // key from lib/fields.ts
+  status     CoverageStatus
+  summary    String
+  quote      String?
+  page       Int? // page where the quote was actually found
+  check      CitationCheck
+  createdAt  DateTime       @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, field])
+}
+
+// A question asked about one policy, answered only from its text. Each citation is checked like a finding's.
+model Question {
+  id         String   @id @default(cuid())
+  documentId String
+  question   String
+  answer     String
+  answerable Boolean // false: the policy doesn't say
+  citations  Json // [{ quote, page, check }]
+  model      String?
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, createdAt])
+}
+
+// ─── Abuse protection ─────────────────────────────────────────────────────────
+
+model RateLimitBucket {
+  key     String   @id
+  count   Int
+  resetAt DateTime
+
+  @@index([resetAt])
+}

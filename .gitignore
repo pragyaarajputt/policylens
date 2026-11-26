@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+lib/generated
+test-results/
+playwright-report/
+!.env.example
+
+# Real insurer policy wordings used for the accuracy test: public, but the insurers' copyrighted files.
+eval-policies/
+tests/evals/last-real-run.json
