@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { signOut } from "@/lib/auth";
 import { AiError } from "@/lib/ai/gemini";
-import { analyseDocument, askQuestion, deleteDocument, NotFoundError, PolicyRuleError, uploadDocument } from "@/lib/data/documents";
+import { analyseDocument, askQuestion, deleteAccount, deleteDocument, NotFoundError, PolicyRuleError, uploadDocument } from "@/lib/data/documents";
 import { PdfError } from "@/lib/pdf";
 import { requireUserId } from "@/lib/session";
 
@@ -67,6 +67,12 @@ export async function deleteAction(documentId: string): Promise<ActionState> {
     return friendly(error);
   }
   redirect("/policies");
+}
+
+export async function deleteAccountAction() {
+  const userId = await requireUserId();
+  await deleteAccount(userId);
+  await signOut({ redirectTo: "/" });
 }
 
 export async function signOutAction() {

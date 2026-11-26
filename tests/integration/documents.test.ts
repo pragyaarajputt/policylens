@@ -10,7 +10,7 @@ vi.mock("@/lib/ai/gemini", async (importOriginal) => ({
 }));
 
 const { prisma } = await import("@/lib/db");
-const { analyseDocument, askQuestion, deleteDocument, getClausePage, getComparison, getDocument, getDocumentPdf, listDocuments, NotFoundError, PolicyRuleError, uploadDocument } =
+const { analyseDocument, askQuestion, deleteAccount, deleteDocument, getClausePage, getComparison, getDocument, getDocumentPdf, listDocuments, NotFoundError, PolicyRuleError, uploadDocument } =
   await import("@/lib/data/documents");
 const { FIELDS } = await import("@/lib/fields");
 
@@ -143,6 +143,19 @@ describe("privacy", () => {
     await expect(analyseDocument(other, id)).rejects.toBeInstanceOf(NotFoundError);
     await expect(deleteDocument(other, id)).rejects.toBeInstanceOf(NotFoundError);
     expect(await listDocuments(me)).toHaveLength(1);
+  });
+
+  it("deletes an account with everything in it, and nobody else's", async () => {
+    const me = await user("me@example.com");
+    const other = await user("other@example.com");
+    const { id } = await uploadDocument(me, "wording.pdf", await makePdf(POLICY));
+    await analyseDocument(me, id);
+    await uploadDocument(other, "theirs.pdf", await makePdf(POLICY));
+    await deleteAccount(me);
+    expect(await prisma.user.count({ where: { id: me } })).toBe(0);
+    expect(await prisma.document.count({ where: { userId: me } })).toBe(0);
+    expect(await prisma.finding.count()).toBe(0);
+    expect(await listDocuments(other)).toHaveLength(1);
   });
 
   it("deletes a policy with its pages and findings", async () => {

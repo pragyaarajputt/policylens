@@ -231,3 +231,8 @@ export async function listReadyDocuments(userId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+/** Delete the account and, by cascade, every policy, page, finding, question and sign-in record. */
+export async function deleteAccount(userId: string) {
+  await prisma.user.delete({ where: { id: userId } });
+}

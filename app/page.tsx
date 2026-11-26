@@ -71,7 +71,12 @@ export default function Home() {
         </section>
       </main>
       <footer className="mx-auto w-full max-w-5xl px-4 pb-12 pt-4 text-sm leading-relaxed text-muted-foreground sm:px-6">
-        PolicyLens explains what your policy document says. It isn&apos;t insurance advice and doesn&apos;t sell or recommend policies.
+        <p>PolicyLens explains what your policy document says. It isn&apos;t insurance advice and doesn&apos;t sell or recommend policies.</p>
+        <nav aria-label="Legal" className="mt-3 flex gap-4">
+          <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+          <Link href="/terms" className="hover:text-foreground">Terms</Link>
+          <a href="https://github.com/pragyaarajputt/policylens" className="hover:text-foreground">Source code</a>
+        </nav>
       </footer>
     </div>
   );

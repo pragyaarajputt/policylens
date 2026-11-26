@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { listDocuments } from "@/lib/data/documents";
 import { requireUserId } from "@/lib/session";
+import { DeleteAccountButton } from "./delete-account";
 import { StatusBadge } from "./status-badge";
 import { UploadForm } from "./upload-form";
 
@@ -25,6 +26,9 @@ export default function PoliciesPage() {
       <Suspense fallback={<p className="text-sm text-muted-foreground">Loading your policies…</p>}>
         <PolicyList />
       </Suspense>
+      <div className="border-t pt-6">
+        <DeleteAccountButton />
+      </div>
     </div>
   );
 }
